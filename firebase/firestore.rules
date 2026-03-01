@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+    function vehicleCount(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.vehicles.size();
+    }
+
+    // ── users ─────────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId)
+                    && request.resource.data.vehicles.size() <= 3;
+      allow update: if isSignedIn() && isOwner(userId)
+                    && request.resource.data.vehicles.size() <= 3;
+      allow delete: if isSignedIn() && isOwner(userId);
+
+      // private friends list — only the owning user can read/write
+      match /friends/{friendId} {
+        allow read, write: if isSignedIn() && isOwner(userId);
+      }
+    }
+
+    // ── vehicleLookup — public read for search, owner-only write ──────────────
+    match /vehicleLookup/{licensePlate} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn()
+                    && resource.data.userId == request.auth.uid;
+    }
+
+    // ── messages ──────────────────────────────────────────────────────────────
+    match /messages/{messageId} {
+      // sender or recipient can read
+      allow read: if isSignedIn()
+                  && (resource.data.senderId == request.auth.uid
+                      || resource.data.recipientUserId == request.auth.uid);
+      // only sender creates; recipientUserId must be set; content ≤ 500 chars
+      allow create: if isSignedIn()
+                    && request.resource.data.senderId == request.auth.uid
+                    && request.resource.data.content.size() <= 500
+                    && request.resource.data.expiresAt is timestamp;
+      // recipient can mark isRead; sender can delete
+      allow update: if isSignedIn()
+                    && (resource.data.recipientUserId == request.auth.uid
+                        || resource.data.senderId == request.auth.uid);
+      allow delete: if isSignedIn()
+                    && resource.data.senderId == request.auth.uid;
+    }
+
+    // ── daily message counts — spam prevention ────────────────────────────────
+    match /messageCounts/{countId} {
+      allow read, write: if isSignedIn()
+                         && countId.matches(request.auth.uid + '_.*');
+    }
+
+    // ── friend requests ───────────────────────────────────────────────────────
+    match /friendRequests/{requestId} {
+      allow read: if isSignedIn()
+                  && (resource.data.requesterId == request.auth.uid
+                      || resource.data.recipientUserId == request.auth.uid);
+      allow create: if isSignedIn()
+                    && request.resource.data.requesterId == request.auth.uid
+                    && request.resource.data.message.size() <= 100;
+      // only recipient can update status (accept/decline)
+      allow update: if isSignedIn()
+                    && resource.data.recipientUserId == request.auth.uid;
+      allow delete: if isSignedIn()
+                    && (resource.data.requesterId == request.auth.uid
+                        || resource.data.recipientUserId == request.auth.uid);
+    }
+  }
+}
