@@ -47,6 +47,10 @@ jobs:
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
 
+      - name: Make gradlew executable
+        working-directory: android-app
+        run: chmod +x gradlew
+
       - name: Run unit tests
         working-directory: android-app
         run: ./gradlew test
