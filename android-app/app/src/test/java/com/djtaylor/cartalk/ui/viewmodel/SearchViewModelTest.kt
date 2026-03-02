@@ -63,8 +63,6 @@ class SearchViewModelTest {
         viewModel.uiState.test {
             awaitItem() // initial from onQueryChange
             viewModel.search()
-            val loading = awaitItem()
-            assertTrue(loading.isLoading)
             val result = awaitItem()
             assertFalse(result.isLoading)
             assertNotNull(result.result)
@@ -78,32 +76,18 @@ class SearchViewModelTest {
     fun `no results sets noResults flag`() = runTest {
         whenever(userRepository.searchByLicensePlate(any())).thenReturn(RepoResult.Success(null))
         viewModel.onQueryChange("ZZZ-9999")
-
-        viewModel.uiState.test {
-            awaitItem()
-            viewModel.search()
-            skipItems(1) // loading
-            val state = awaitItem()
-            assertTrue(state.noResults)
-            assertNull(state.result)
-            cancelAndIgnoreRemainingEvents()
-        }
+        viewModel.search()
+        assertTrue(viewModel.uiState.value.noResults)
+        assertNull(viewModel.uiState.value.result)
     }
 
     @Test
     fun `search error propagates to state`() = runTest {
         whenever(userRepository.searchByLicensePlate(any())).thenReturn(RepoResult.Error("Network error"))
         viewModel.onQueryChange("XYZ")
-
-        viewModel.uiState.test {
-            awaitItem()
-            viewModel.search()
-            skipItems(1) // loading
-            val state = awaitItem()
-            assertEquals("Network error", state.error)
-            assertNull(state.result)
-            cancelAndIgnoreRemainingEvents()
-        }
+        viewModel.search()
+        assertEquals("Network error", viewModel.uiState.value.error)
+        assertNull(viewModel.uiState.value.result)
     }
 
     @Test

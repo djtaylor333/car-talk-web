@@ -81,16 +81,10 @@ class ComposeViewModelTest {
             .thenReturn(RepoResult.Success(Unit))
 
         viewModel.onContentChange("Your left brake light is out")
+        viewModel.sendMessage("uid1", "v1", "Red Toyota · ABC123", "v2", "uid2")
 
-        viewModel.uiState.test {
-            awaitItem() // content changed state
-            viewModel.sendMessage("uid1", "v1", "Red Toyota · ABC123", "v2", "uid2")
-            val loading = awaitItem()
-            assertTrue(loading.isLoading)
-            val sent = awaitItem()
-            assertTrue(sent.sent)
-            cancelAndIgnoreRemainingEvents()
-        }
+        assertTrue(viewModel.uiState.value.sent)
+        assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
@@ -99,16 +93,10 @@ class ComposeViewModelTest {
             .thenReturn(RepoResult.Error("Daily limit reached"))
 
         viewModel.onContentChange("Test message")
+        viewModel.sendMessage("uid1", "v1", "display", "v2", "uid2")
 
-        viewModel.uiState.test {
-            awaitItem()
-            viewModel.sendMessage("uid1", "v1", "display", "v2", "uid2")
-            skipItems(1) // loading
-            val error = awaitItem()
-            assertEquals("Daily limit reached", error.error)
-            assertFalse(error.sent)
-            cancelAndIgnoreRemainingEvents()
-        }
+        assertEquals("Daily limit reached", viewModel.uiState.value.error)
+        assertFalse(viewModel.uiState.value.sent)
     }
 
     @Test

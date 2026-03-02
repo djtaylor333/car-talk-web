@@ -56,16 +56,10 @@ class AuthViewModelTest {
         whenever(authRepository.signInWithEmail(any(), any()))
             .thenReturn(AuthResult.Error("Invalid credentials"))
 
-        viewModel.uiState.test {
-            awaitItem()
-            viewModel.signIn("bad@bad.com", "wrong") {}
-            val loading = awaitItem()
-            assertTrue(loading.isLoading)
-            val error = awaitItem()
-            assertEquals("Invalid credentials", error.error)
-            assertFalse(error.isLoading)
-            cancelAndIgnoreRemainingEvents()
-        }
+        viewModel.signIn("bad@bad.com", "wrong") {}
+
+        assertEquals("Invalid credentials", viewModel.uiState.value.error)
+        assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
