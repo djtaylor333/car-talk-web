@@ -20,8 +20,8 @@ class MessageRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val messageDao: MessageDao
 ) {
-    private val messagesCol = firestore.collection("messages")
-    private val countsCol = firestore.collection("messageCounts")
+    private val messagesCol get() = firestore.collection("messages")
+    private val countsCol get() = firestore.collection("messageCounts")
 
     companion object {
         const val ANON_MAX_CHARS = 200

@@ -14,8 +14,8 @@ import javax.inject.Singleton
 class FriendsRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
-    private val requestsCol = firestore.collection("friendRequests")
-    private val usersCol = firestore.collection("users")
+    private val requestsCol get() = firestore.collection("friendRequests")
+    private val usersCol get() = firestore.collection("users")
 
     suspend fun sendFriendRequest(
         requesterId: String,

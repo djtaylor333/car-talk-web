@@ -18,8 +18,8 @@ sealed class RepoResult<out T> {
 class UserRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
-    private val usersCol = firestore.collection("users")
-    private val lookupCol = firestore.collection("vehicleLookup")
+    private val usersCol get() = firestore.collection("users")
+    private val lookupCol get() = firestore.collection("vehicleLookup")
 
     suspend fun getProfile(uid: String): RepoResult<UserProfile> = runCatching {
         val doc = usersCol.document(uid).get().await()
