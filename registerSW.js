@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/car-talk-web/sw.js', { scope: '/car-talk-web/' })})}
