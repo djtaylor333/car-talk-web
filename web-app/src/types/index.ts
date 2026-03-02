@@ -12,10 +12,24 @@ export interface Vehicle {
 export interface UserProfile {
   uid: string;
   email?: string;
+  displayName?: string;
   phone?: string;
   vehicles: Vehicle[];
   createdAt?: Timestamp;
 }
+
+export interface MessageFormData {
+  content: string;
+  isFriendMessage: boolean;
+}
+
+export enum FriendRequestStatus {
+  Pending = 'pending',
+  Accepted = 'accepted',
+  Declined = 'declined',
+}
+
+export const FRIEND_REQUEST_MAX_CHARS = 100;
 
 export interface Message {
   id: string;
@@ -41,15 +55,16 @@ export interface FriendRequest {
   recipientVehicleId: string;
   recipientUserId: string;
   message: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'declined';
   createdAt: Timestamp;
 }
 
 export interface Friend {
   userId: string;
   vehicleId: string;
-  vehicleDisplay: string;
-  nickname: string;
+  vehicleDisplay?: string;
+  nickname: string | null;
+  since?: string;
   addedAt?: Timestamp;
 }
 

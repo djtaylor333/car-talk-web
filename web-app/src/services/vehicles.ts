@@ -5,17 +5,13 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
-  collection,
-  query,
-  where,
-  getDocs,
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 import { UserProfile, Vehicle, MAX_VEHICLES } from '../types';
 
 export const getProfile = async (userId: string): Promise<UserProfile | null> => {
   const snap = await getDoc(doc(db, 'users', userId));
-  return snap.exists() ? ({ id: snap.id, ...snap.data() } as UserProfile) : null;
+  return snap.exists() ? ({ uid: snap.id, ...snap.data() } as UserProfile) : null;
 };
 
 export const createOrUpdateProfile = async (

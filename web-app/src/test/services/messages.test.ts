@@ -57,10 +57,14 @@ describe('sendMessage', () => {
   });
 
   it('succeeds with valid anonymous message under limit', async () => {
-    vi.mocked(firestoreModule.getDoc).mockResolvedValueOnce({
+    const notExistsSnap = {
       exists: () => false,
       data: () => null,
-    } as ReturnType<typeof firestoreModule.getDoc> extends Promise<infer R> ? R : never);
+    } as ReturnType<typeof firestoreModule.getDoc> extends Promise<infer R> ? R : never;
+    // getDoc is called twice: checkDailyLimit + incrementDailyCount
+    vi.mocked(firestoreModule.getDoc)
+      .mockResolvedValueOnce(notExistsSnap)
+      .mockResolvedValueOnce(notExistsSnap);
     vi.mocked(firestoreModule.addDoc).mockResolvedValueOnce({ id: 'msg1' } as unknown as ReturnType<typeof firestoreModule.addDoc> extends Promise<infer R> ? R : never);
     vi.mocked(firestoreModule.setDoc).mockResolvedValueOnce(undefined);
 

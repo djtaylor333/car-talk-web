@@ -16,8 +16,8 @@ const RequestCard: React.FC<{ req: FriendRequest; onRespond: () => void }> = ({ 
 
   return (
     <div className="card friend-request-card">
-      <p className="fr-plate">From vehicle: {req.senderVehicleId}</p>
-      {req.introMessage && <p className="fr-intro">"{req.introMessage}"</p>}
+      <p className="fr-plate">From vehicle: {req.requesterVehicleId}</p>
+      {req.message && <p className="fr-intro">"{req.message}"</p>}
       <div className="fr-actions">
         <button className="btn-primary" onClick={() => handle(true)} disabled={loading}>Accept</button>
         <button className="btn-secondary" onClick={() => handle(false)} disabled={loading}>Decline</button>

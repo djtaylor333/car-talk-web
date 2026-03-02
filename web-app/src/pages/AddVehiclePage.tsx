@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { addVehicle, getProfile } from '../services/vehicles';
-import { Vehicle, VehicleColor, MAX_VEHICLES } from '../types';
+import { Vehicle, VEHICLE_COLORS, MAX_VEHICLES } from '../types';
 
 const MAKES_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json';
-
-const COLORS = Object.values(VehicleColor);
 
 const AddVehiclePage: React.FC = () => {
   const { user } = useAuth();
@@ -14,7 +12,7 @@ const AddVehiclePage: React.FC = () => {
   const [plate, setPlate] = useState('');
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
-  const [color, setColor] = useState<VehicleColor>(VehicleColor.White);
+  const [color, setColor] = useState<string>('');
   const [makes, setMakes] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -104,8 +102,8 @@ const AddVehiclePage: React.FC = () => {
         </div>
         <div className="form-group">
           <label htmlFor="color">Color</label>
-          <select id="color" value={color} onChange={(e) => setColor(e.target.value as VehicleColor)}>
-            {COLORS.map((c) => <option key={c} value={c}>{c}</option>)}
+          <select id="color" value={color} onChange={(e) => setColor(e.target.value)}>
+            {VEHICLE_COLORS.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
           </select>
         </div>
         {error && <p className="error-text" role="alert">{error}</p>}

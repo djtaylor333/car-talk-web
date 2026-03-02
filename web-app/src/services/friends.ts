@@ -15,21 +15,21 @@ import { db } from './firebaseConfig';
 import { FriendRequest, Friend, FriendRequestStatus, FRIEND_REQUEST_MAX_CHARS } from '../types';
 
 export const sendFriendRequest = async (
-  senderId: string,
-  senderVehicleId: string,
+  requesterId: string,
+  requesterVehicleId: string,
   recipientUserId: string,
   recipientVehicleId: string,
-  introMessage: string
+  message: string
 ): Promise<void> => {
-  if (introMessage.length > FRIEND_REQUEST_MAX_CHARS) {
+  if (message.length > FRIEND_REQUEST_MAX_CHARS) {
     throw new Error(`Intro exceeds ${FRIEND_REQUEST_MAX_CHARS} characters`);
   }
   await addDoc(collection(db, 'friendRequests'), {
-    senderId,
-    senderVehicleId,
+    requesterId,
+    requesterVehicleId,
     recipientUserId,
     recipientVehicleId,
-    introMessage,
+    message,
     status: FriendRequestStatus.Pending,
     createdAt: serverTimestamp(),
   });
@@ -38,7 +38,7 @@ export const sendFriendRequest = async (
 export const respondToRequest = async (
   requestId: string,
   accept: boolean,
-  currentUserId: string
+  _currentUserId: string
 ): Promise<void> => {
   const reqRef = doc(db, 'friendRequests', requestId);
   const reqSnap = await getDoc(reqRef);
@@ -48,8 +48,8 @@ export const respondToRequest = async (
   await updateDoc(reqRef, { status });
   if (accept) {
     const friendA: Friend = {
-      userId: req.senderId,
-      vehicleId: req.senderVehicleId,
+      userId: req.requesterId,
+      vehicleId: req.requesterVehicleId,
       nickname: null,
       since: new Date().toISOString(),
     };
@@ -60,11 +60,11 @@ export const respondToRequest = async (
       since: new Date().toISOString(),
     };
     await setDoc(
-      doc(db, 'users', req.recipientUserId, 'friends', req.senderId),
+      doc(db, 'users', req.recipientUserId, 'friends', req.requesterId),
       friendA
     );
     await setDoc(
-      doc(db, 'users', req.senderId, 'friends', req.recipientUserId),
+      doc(db, 'users', req.requesterId, 'friends', req.recipientUserId),
       friendB
     );
   }

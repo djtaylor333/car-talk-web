@@ -7,11 +7,10 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  setDoc,
   serverTimestamp,
   getDoc,
-  getDocs,
   Timestamp,
-  limit,
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 import { Message, MessageFormData, ANON_MAX_CHARS, FRIEND_MAX_CHARS, MAX_DAILY_ANON, RETENTION_DAYS } from '../types';
@@ -78,7 +77,6 @@ const incrementDailyCount = async (userId: string, vehicleId: string): Promise<v
   if (snap.exists()) {
     await updateDoc(countRef, { count: (snap.data().count ?? 0) + 1 });
   } else {
-    const { setDoc } = await import('firebase/firestore');
     await setDoc(countRef, { userId, vehicleId, date: today, count: 1 });
   }
 };

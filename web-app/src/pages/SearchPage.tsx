@@ -25,7 +25,7 @@ const SearchPage: React.FC = () => {
       const profile = await searchByLicensePlate(plate.trim());
       setResult(profile);
       if (profile && user) {
-        const friend = await areFriends(user.uid, profile.id);
+        const friend = await areFriends(user.uid, profile.uid);
         setIsFriend(friend);
       }
     } catch {
@@ -78,14 +78,14 @@ const SearchPage: React.FC = () => {
           <div className="search-actions">
             <button
               className="btn-primary"
-              onClick={() => navigate(`/compose?recipientId=${result.id}&vehicleId=${targetVehicle.id}&plate=${targetVehicle.licensePlate}&isFriend=${isFriend}`)}
+              onClick={() => navigate(`/compose?recipientId=${result.uid}&vehicleId=${targetVehicle.id}&plate=${targetVehicle.licensePlate}&isFriend=${isFriend}`)}
             >
               Send Message
             </button>
             {!isFriend && (
               <button
                 className="btn-secondary"
-                onClick={() => navigate(`/compose?recipientId=${result.id}&vehicleId=${targetVehicle.id}&plate=${targetVehicle.licensePlate}&friendRequest=true`)}
+                onClick={() => navigate(`/compose?recipientId=${result.uid}&vehicleId=${targetVehicle.id}&plate=${targetVehicle.licensePlate}&friendRequest=true`)}
               >
                 Add as Friend
               </button>
