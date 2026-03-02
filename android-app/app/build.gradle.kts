@@ -113,6 +113,8 @@ dependencies {
 
     // WorkManager
     implementation(libs.workmanager.ktx)
+    implementation(libs.hilt.work)
+    ksp(libs.hilt.extensions.compiler)
 
     // Firebase
     implementation(platform(libs.firebase.bom))
