@@ -42,13 +42,11 @@ jobs:
 
       - name: Write keystore
         run: |
-          echo '${{ secrets.KEYSTORE_BASE64 }}' | base64 -d > android-app/app/cartalk-release.jks
-          cat > android-app/keystore.properties <<EOF
-          storeFile=cartalk-release.jks
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
-          EOF
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android-app/app/cartalk-release.jks
+          echo "storeFile=cartalk-release.jks" > android-app/keystore.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android-app/keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android-app/keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android-app/keystore.properties
 
       - name: Make gradlew executable
         working-directory: android-app
