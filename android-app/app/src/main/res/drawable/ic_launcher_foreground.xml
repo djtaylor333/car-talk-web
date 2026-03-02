@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Car body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,62 L12,78 A4,4 0 0 0 16,82 L92,82 A4,4 0 0 0 96,78 L96,62 L76,62 L64,38 L44,38 L32,62 Z" />
+    <!-- Roof / cabin -->
+    <path
+        android:fillColor="#CCDFFF"
+        android:pathData="M38,62 L46,44 L62,44 L70,62 Z" />
+    <!-- Wheels -->
+    <path
+        android:fillColor="#444444"
+        android:pathData="M30,82 m-10,0 a10,10 0 1 0 20,0 a10,10 0 1 0 -20,0" />
+    <path
+        android:fillColor="#444444"
+        android:pathData="M78,82 m-10,0 a10,10 0 1 0 20,0 a10,10 0 1 0 -20,0" />
+    <!-- Headlight -->
+    <path
+        android:fillColor="#FFE566"
+        android:pathData="M89,66 L96,66 L96,74 L89,74 Z" />
+    <!-- Taillight -->
+    <path
+        android:fillColor="#FF4444"
+        android:pathData="M12,66 L19,66 L19,74 L12,74 Z" />
+</vector>
