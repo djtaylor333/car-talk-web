@@ -30,14 +30,17 @@ export const createOrUpdateProfile = async (
 export const addVehicle = async (userId: string, vehicle: Vehicle): Promise<void> => {
   const ref = doc(db, 'users', userId);
   const snap = await getDoc(ref);
-  if (!snap.exists()) throw new Error('User profile not found');
-  const existing: Vehicle[] = snap.data().vehicles ?? [];
+  const existing: Vehicle[] = snap.exists() ? (snap.data().vehicles ?? []) : [];
   if (existing.length >= MAX_VEHICLES) {
     throw new Error(`Maximum of ${MAX_VEHICLES} vehicles allowed`);
   }
   const plate = vehicle.licensePlate.toUpperCase().replace(/\s/g, '');
   const vehicleWithNormalized = { ...vehicle, licensePlate: plate };
-  await updateDoc(ref, { vehicles: arrayUnion(vehicleWithNormalized) });
+  if (snap.exists()) {
+    await updateDoc(ref, { vehicles: arrayUnion(vehicleWithNormalized) });
+  } else {
+    await setDoc(ref, { uid: userId, vehicles: [vehicleWithNormalized] });
+  }
   await setDoc(doc(db, 'vehicleLookup', plate), {
     userId,
     vehicleId: vehicle.id,
@@ -60,6 +63,18 @@ export const searchByLicensePlate = async (plate: string): Promise<UserProfile |
   const normalized = plate.toUpperCase().replace(/\s/g, '');
   const snap = await getDoc(doc(db, 'vehicleLookup', normalized));
   if (!snap.exists()) return null;
-  const { userId } = snap.data();
-  return getProfile(userId);
+  const data = snap.data();
+  // Build a minimal UserProfile from the vehicleLookup doc — avoids a
+  // cross-user read of /users/{userId} which security rules restrict to
+  // the document owner.
+  return {
+    uid: data.userId as string,
+    vehicles: [{
+      id: data.vehicleId as string,
+      licensePlate: data.licensePlate as string,
+      make: data.make as string,
+      model: data.model as string,
+      color: data.color as string,
+    }],
+  };
 };

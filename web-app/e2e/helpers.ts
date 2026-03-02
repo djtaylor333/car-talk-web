@@ -42,6 +42,8 @@ export async function signUpViaUI(
 
 /**
  * Sign in via the UI.
+ * If the user is already signed in the route guard redirects away from /login —
+ * in that case this function is a no-op.
  */
 export async function signInViaUI(
   page: Page,
@@ -49,6 +51,13 @@ export async function signInViaUI(
   password: string
 ): Promise<void> {
   await page.goto('./login');
+  // Race: either the login form appears (user not signed in) or we get
+  // redirected away (user already signed in).  Either resolves this race.
+  await Promise.race([
+    page.locator('#email').waitFor({ state: 'visible', timeout: 8_000 }),
+    page.waitForURL(/\/(search|inbox|add-vehicle|profile)/, { timeout: 8_000 }),
+  ]).catch(() => {});
+  if (!page.url().includes('/login')) return; // already authenticated → no-op
   await page.fill('#email', email);
   await page.fill('#password', password);
   await page.click('button[type="submit"]');
@@ -56,26 +65,27 @@ export async function signInViaUI(
 }
 
 /**
- * Sign out via Firebase in the browser context.
+ * Sign out via the window.__e2e helper injected in dev mode.
+ * Avoids page.goto('./profile') which can hang on Firestore reconnect.
  */
 export async function signOutViaUI(page: Page): Promise<void> {
-  // Navigate to profile and click sign out
-  await page.goto('./profile');
-  await page.getByRole('button', { name: /sign out/i }).click();
+  await page.waitForFunction(() => !!(window as Record<string, unknown>).__e2e, { timeout: 5_000 });
+  await page.evaluate(async () => {
+    const e2e = (window as Window & { __e2e?: Record<string, () => Promise<void>> }).__e2e;
+    if (e2e?.signOut) await e2e.signOut();
+  });
   await page.waitForURL(/login/, { timeout: 10_000 });
 }
 
 /**
  * Delete the currently signed-in Firebase Auth user (cleanup).
- * Called from browser context via page.evaluate.
+ * Uses window.__e2e helper injected in dev mode.
  */
 export async function deleteCurrentUser(page: Page): Promise<void> {
   await page.evaluate(async () => {
-    const { getAuth, deleteUser } = await import('firebase/auth');
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (user) await deleteUser(user);
-  });
+    const e2e = (window as Window & { __e2e?: Record<string, () => Promise<void>> }).__e2e;
+    if (e2e?.deleteCurrentUser) await e2e.deleteCurrentUser();
+  }).catch(() => { /* ignore: user may already be deleted */ });
 }
 
 // ─── NHTSA API mocking ─────────────────────────────────────────────────────

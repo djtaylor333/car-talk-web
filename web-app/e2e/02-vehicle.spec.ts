@@ -62,6 +62,7 @@ test.describe('Vehicle Profile', () => {
     await mockNHTSARoutes(page);
     await page.goto('./add-vehicle');
 
+    await expect(page.locator('#color')).toBeVisible({ timeout: 10_000 });
     const colorOptions = await page.locator('#color option').allTextContents();
     // VEHICLE_COLORS has 12 entries
     expect(colorOptions.length).toBeGreaterThanOrEqual(10);
@@ -95,7 +96,7 @@ test.describe('Vehicle Profile', () => {
     await expect(page).toHaveURL(/profile/, { timeout: 15_000 });
 
     // Vehicle card should appear on profile
-    await expect(page.locator('.vehicle-card, .card')).toContainText(plate);
+    await expect(page.locator('.vehicle-card')).toContainText(plate);
   });
 
   test('submit button disabled until all fields filled', async ({ page }) => {

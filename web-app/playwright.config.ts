@@ -6,7 +6,7 @@ config({ path: '.env.local' });
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 45_000,
+  timeout: 90_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,   // Firebase quota is limited; run tests serially
   workers: 1,

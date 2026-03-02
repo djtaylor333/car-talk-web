@@ -21,7 +21,7 @@ test.describe('Search by licence plate', () => {
     const pageB = await ctxB.newPage();
     const userB = await createTestUser(pageB, true); // needs own vehicle to send
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', plate);
     await pageB.click('button[type="submit"]');
 

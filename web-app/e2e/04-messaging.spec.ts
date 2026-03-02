@@ -19,7 +19,7 @@ test.describe('Messaging', () => {
     await createTestUser(pageB, true);
 
     // User B searches for User A's plate and opens compose
-    await pageB.goto(`/compose?recipientId=uid&vehicleId=vid&plate=${userA.plate}`);
+    await pageB.goto(`./compose?recipientId=uid&vehicleId=vid&plate=${userA.plate}`);
 
     // Anonymous toggle should be present and checked by default
     const checkbox = pageB.locator('[data-testid="anon-checkbox"]');
@@ -53,7 +53,7 @@ test.describe('Messaging', () => {
     await createTestUser(pageB, true);
 
     // Get User A's uid + vehicleId from vehicleLookup via search
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', plate);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -71,7 +71,7 @@ test.describe('Messaging', () => {
     await pageB.waitForURL(/inbox/, { timeout: 15_000 });
 
     // User A should see the message in their inbox
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await expect(pageA.locator('[data-testid="message-row"]').first()).toBeVisible({ timeout: 15_000 });
     await expect(pageA.locator('[data-testid="message-row"]').first()).toContainText(msgText.slice(0, 40));
     // Sender shown as Anonymous
@@ -95,7 +95,7 @@ test.describe('Messaging', () => {
     const pageB = await ctxB.newPage();
     await createTestUser(pageB, true);
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -111,7 +111,7 @@ test.describe('Messaging', () => {
     await pageB.waitForURL(/inbox/);
 
     // In User A's inbox the sender vehicle should be visible (not "Anonymous")
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await expect(pageA.locator('[data-testid="message-row"]').first()).toBeVisible({ timeout: 15_000 });
     const rowText = await pageA.locator('[data-testid="message-row"]').first().textContent();
     expect(rowText).not.toContain('Anonymous');
@@ -132,7 +132,7 @@ test.describe('Messaging', () => {
     const pageB = await ctxB.newPage();
     await createTestUser(pageB, true);
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -162,7 +162,7 @@ test.describe('Messaging', () => {
     const pageB = await ctxB.newPage();
     await createTestUser(pageB, true);
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });

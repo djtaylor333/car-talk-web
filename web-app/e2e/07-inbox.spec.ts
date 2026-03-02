@@ -31,7 +31,7 @@ test.describe('Inbox', () => {
     await createTestUser(pageB, true);
 
     // Send an anonymous message to User A
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -44,7 +44,7 @@ test.describe('Inbox', () => {
     await pageB.waitForURL(/inbox/);
 
     // User A checks inbox tabs
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await expect(pageA.locator('[data-testid="message-row"]').first()).toBeVisible({ timeout: 15_000 });
 
     // Click Anonymous tab — message should still be there
@@ -71,7 +71,7 @@ test.describe('Inbox', () => {
     const pageB = await ctxB.newPage();
     await createTestUser(pageB, true);
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -83,14 +83,14 @@ test.describe('Inbox', () => {
     await pageB.waitForURL(/inbox/);
 
     // User A opens the message
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await pageA.locator('[data-testid="message-row"]').first().waitFor({ timeout: 15_000 });
     await pageA.locator('[data-testid="message-row"]').first().click();
 
     await expect(pageA).toHaveURL(/thread\//, { timeout: 10_000 });
 
     // Message content visible in thread
-    await expect(pageA.locator('.bubble-content, [class*="bubble"]')).toContainText(
+    await expect(pageA.locator('.bubble-content')).toContainText(
       threadMsg.slice(0, 30),
       { timeout: 10_000 }
     );
@@ -118,7 +118,7 @@ test.describe('Inbox', () => {
     const pageB = await ctxB.newPage();
     await createTestUser(pageB, true);
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -128,7 +128,7 @@ test.describe('Inbox', () => {
     await pageB.locator('[data-testid="send-btn"]').click();
     await pageB.waitForURL(/inbox/);
 
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await pageA.locator('[data-testid="message-row"]').first().waitFor({ timeout: 15_000 });
     await pageA.locator('[data-testid="message-row"]').first().click();
     await expect(pageA).toHaveURL(/thread\//);
@@ -154,7 +154,7 @@ test.describe('Inbox', () => {
     const pageB = await ctxB.newPage();
     await createTestUser(pageB, true);
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -165,9 +165,9 @@ test.describe('Inbox', () => {
     await pageB.waitForURL(/inbox/);
 
     // User A's inbox shows unread badge
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await pageA.locator('[data-testid="message-row"]').first().waitFor({ timeout: 15_000 });
-    await expect(pageA.locator('.unread-dot').first()).toBeVisible();
+    await expect(pageA.locator('[data-testid="message-row"]').first()).toHaveClass(/unread/, { timeout: 10_000 });
 
     // Open the thread (marks as read)
     await pageA.locator('[data-testid="message-row"]').first().click();
@@ -175,7 +175,7 @@ test.describe('Inbox', () => {
     await pageA.waitForTimeout(1_500); // allow markAsRead to complete
 
     // Back to inbox — unread dot should be gone
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await pageA.waitForTimeout(1_000);
     const unreadDots = await pageA.locator('.unread-dot').count();
     expect(unreadDots).toBe(0);

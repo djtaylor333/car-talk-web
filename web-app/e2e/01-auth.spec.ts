@@ -3,7 +3,7 @@
  * Tests: sign up with display name, log in, log out.
  */
 import { test, expect } from '@playwright/test';
-import { signUpViaUI, signInViaUI, cleanupTestUser, uniqueEmail } from './helpers';
+import { signUpViaUI, signInViaUI, signOutViaUI, cleanupTestUser, uniqueEmail } from './helpers';
 
 const PASSWORD = 'TestPass123!';
 
@@ -44,12 +44,8 @@ test.describe('Authentication', () => {
     const email = uniqueEmail();
     // First create the account
     await signUpViaUI(page, email, PASSWORD);
-    // Now log out and log back in
-    await page.evaluate(async () => {
-      const { getAuth, signOut } = await import('firebase/auth');
-      await signOut(getAuth());
-    });
-    await page.waitForURL(/login/, { timeout: 10_000 });
+    // Sign out via helper (avoids bare import() in eval)
+    await signOutViaUI(page);
 
     await signInViaUI(page, email, PASSWORD);
     await expect(page).toHaveURL(/inbox|search|add-vehicle/);
@@ -68,9 +64,8 @@ test.describe('Authentication', () => {
   test('sign out returns to login page', async ({ page }) => {
     const email = uniqueEmail();
     await signUpViaUI(page, email, PASSWORD);
-    // Add vehicle so we can reach profile page
-    await page.goto('./profile');
-    await page.getByRole('button', { name: /sign out/i }).click();
+    // Use helper — avoids full page.goto reload that hangs Firestore reconnect
+    await signOutViaUI(page);
     await expect(page).toHaveURL(/login/, { timeout: 10_000 });
 
     // Re-sign in to delete the test user

@@ -23,7 +23,7 @@ function AppRoutes() {
     <Routes>
       {/* Public routes */}
       <Route path="/login" element={user ? <Navigate to="/search" replace /> : <LoginPage />} />
-      <Route path="/signup" element={user ? <Navigate to="/search" replace /> : <SignUpPage />} />
+      <Route path="/signup" element={user ? <Navigate to="/add-vehicle" replace /> : <SignUpPage />} />
 
       {/* Protected routes with bottom nav layout */}
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>

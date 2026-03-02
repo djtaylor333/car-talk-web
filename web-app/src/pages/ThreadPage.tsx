@@ -19,8 +19,8 @@ const ThreadPage: React.FC = () => {
   const isFriend = messages.some((m) => m.isFriendMessage);
 
   useEffect(() => {
-    if (!threadId) return;
-    const unsub = subscribeToThread(threadId, (msgs) => {
+    if (!threadId || !user?.uid) return;
+    const unsub = subscribeToThread(threadId, user.uid, (msgs) => {
       setMessages(msgs);
       msgs
         .filter((m) => !m.isRead && m.recipientUserId === user?.uid)

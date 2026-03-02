@@ -3,7 +3,6 @@ import {
   addDoc,
   query,
   where,
-  orderBy,
   onSnapshot,
   doc,
   updateDoc,
@@ -88,33 +87,75 @@ export const subscribeToInbox = (
   userId: string,
   onMessages: (msgs: Message[]) => void
 ): (() => void) => {
+  // Single-field equality query avoids requiring a composite Firestore index.
+  // Firestore can prove the read rule (recipientUserId == auth.uid) from the
+  // query constraint.  We sort the results client-side.
   const q = query(
     collection(db, 'messages'),
-    where('recipientUserId', '==', userId),
-    orderBy('timestamp', 'desc')
+    where('recipientUserId', '==', userId)
   );
   return onSnapshot(q, (snap) => {
     const now = new Date();
     const msgs: Message[] = snap.docs
       .map((d) => ({ id: d.id, ...d.data() } as Message))
-      .filter((m) => !m.expiresAt || m.expiresAt.toDate() > now);
+      .filter((m) => !m.expiresAt || m.expiresAt.toDate() > now)
+      .sort((a, b) => {
+        const aMs = a.timestamp?.toDate?.()?.getTime() ?? 0;
+        const bMs = b.timestamp?.toDate?.()?.getTime() ?? 0;
+        return bMs - aMs; // newest first
+      });
     onMessages(msgs);
   });
 };
 
+/**
+ * Subscribe to all messages in a thread visible to `userId`.
+ *
+ * Uses two separate single-field queries (sent + received) instead of a
+ * threadId filter, so Firestore can prove the read-rule for each query
+ * without requiring a composite index.
+ */
 export const subscribeToThread = (
   threadId: string,
+  userId: string,
   onMessages: (msgs: Message[]) => void
 ): (() => void) => {
-  const q = query(
-    collection(db, 'messages'),
-    where('threadId', '==', threadId),
-    orderBy('timestamp', 'asc')
+  let receivedMsgs: Message[] = [];
+  let sentMsgs: Message[] = [];
+
+  const emit = () => {
+    const all = [...receivedMsgs, ...sentMsgs].sort((a, b) => {
+      const aMs = a.timestamp?.toDate?.()?.getTime() ?? 0;
+      const bMs = b.timestamp?.toDate?.()?.getTime() ?? 0;
+      return aMs - bMs; // oldest first
+    });
+    onMessages(all);
+  };
+
+  const unsubReceived = onSnapshot(
+    query(collection(db, 'messages'), where('recipientUserId', '==', userId)),
+    (snap) => {
+      receivedMsgs = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as Message))
+        .filter((m) => m.threadId === threadId);
+      emit();
+    }
   );
-  return onSnapshot(q, (snap) => {
-    const msgs: Message[] = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
-    onMessages(msgs);
-  });
+
+  const unsubSent = onSnapshot(
+    query(collection(db, 'messages'), where('senderId', '==', userId)),
+    (snap) => {
+      sentMsgs = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as Message))
+        .filter((m) => m.threadId === threadId);
+      emit();
+    }
+  );
+
+  return () => {
+    unsubReceived();
+    unsubSent();
+  };
 };
 
 export const markAsRead = async (messageId: string): Promise<void> => {

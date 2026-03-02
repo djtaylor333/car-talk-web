@@ -24,7 +24,7 @@ test.describe('Message expiry (time travel)', () => {
     await createTestUser(pageB, true);
 
     // User B sends a message to User A
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -37,7 +37,7 @@ test.describe('Message expiry (time travel)', () => {
     await pageB.waitForURL(/inbox/);
 
     // ── User A sees the message in their inbox ─────────────────────────────
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await expect(pageA.locator('[data-testid="message-row"]').first())
       .toContainText(msgText.slice(0, 40), { timeout: 15_000 });
 
@@ -64,9 +64,11 @@ test.describe('Message expiry (time travel)', () => {
       } as unknown as typeof Date;
     });
 
-    // ── Re-navigate to inbox (re-creates Firestore subscription with mocked Date)
-    await pageA.goto('/search'); // navigate away first
-    await pageA.goto('/inbox');  // come back → re-subscribes
+    // ── Re-navigate to inbox via bottom-nav (client-side, preserves MockDate) ──
+    await pageA.locator('.bottom-nav a[href*="/search"], nav a[href*="/search"]').click();
+    await pageA.waitForURL(/search/);
+    await pageA.locator('.bottom-nav a[href*="/inbox"], nav a[href*="/inbox"]').click();
+    await pageA.waitForURL(/inbox/);
 
     // The message should no longer be visible (expired 1 day ago)
     // Allow up to 8s for Firestore snapshot to arrive and be filtered
@@ -101,7 +103,7 @@ test.describe('Message expiry (time travel)', () => {
     const pageB = await ctxB.newPage();
     await createTestUser(pageB, true);
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /send message/i }).waitFor({ timeout: 15_000 });
@@ -114,7 +116,7 @@ test.describe('Message expiry (time travel)', () => {
     await pageB.waitForURL(/inbox/);
 
     // Time travel to 29 days (within retention window)
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     await pageA.evaluate(() => {
       const futureMs = Date.now() + 29 * 24 * 60 * 60 * 1000;
       const OrigDate = Date;
@@ -129,8 +131,11 @@ test.describe('Message expiry (time travel)', () => {
       } as unknown as typeof Date;
     });
 
-    await pageA.goto('/search');
-    await pageA.goto('/inbox');
+    // Navigate client-side to preserve MockDate
+    await pageA.locator('.bottom-nav a[href*="/search"], nav a[href*="/search"]').click();
+    await pageA.waitForURL(/search/);
+    await pageA.locator('.bottom-nav a[href*="/inbox"], nav a[href*="/inbox"]').click();
+    await pageA.waitForURL(/inbox/);
     await pageA.waitForTimeout(3_000);
 
     // Message should STILL be visible (not yet expired)

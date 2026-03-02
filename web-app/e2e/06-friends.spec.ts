@@ -19,7 +19,7 @@ test.describe('Friends / Favourites', () => {
     await createTestUser(pageB, true);
 
     // ── User B searches for User A and sends a friend request ──────────────
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /add as friend/i }).waitFor({ timeout: 15_000 });
@@ -32,7 +32,7 @@ test.describe('Friends / Favourites', () => {
     await pageB.waitForURL(/inbox/);
 
     // ── User A goes to friend requests and accepts ─────────────────────────
-    await pageA.goto('/friend-requests');
+    await pageA.goto('./friend-requests');
     const requestCard = pageA.locator('.friend-request-card, .card').first();
     await expect(requestCard).toBeVisible({ timeout: 15_000 });
     // Intro message visible on the card
@@ -44,7 +44,7 @@ test.describe('Friends / Favourites', () => {
     await expect(requestCard).toBeHidden({ timeout: 10_000 });
 
     // ── User B can now send a 300-char friend message (exceeds anon 200 limit) ─
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     // After being friends, "Send Message" button should appear with isFriend param
@@ -71,7 +71,7 @@ test.describe('Friends / Favourites', () => {
     await pageB.waitForURL(/inbox/);
 
     // Verify User A received the long message
-    await pageA.goto('/inbox');
+    await pageA.goto('./inbox');
     const friendRows = pageA.locator('[data-testid="message-row"]');
     await expect(friendRows.first()).toBeVisible({ timeout: 15_000 });
 
@@ -92,7 +92,7 @@ test.describe('Friends / Favourites', () => {
     const pageB = await ctxB.newPage();
     await createTestUser(pageB, true);
 
-    await pageB.goto('/search');
+    await pageB.goto('./search');
     await pageB.fill('input[type="text"]', userA.plate!);
     await pageB.click('button[type="submit"]');
     await pageB.getByRole('button', { name: /add as friend/i }).waitFor({ timeout: 15_000 });
@@ -103,7 +103,7 @@ test.describe('Friends / Favourites', () => {
     await pageB.locator('[data-testid="send-btn"]').click();
     await pageB.waitForURL(/inbox/);
 
-    await pageA.goto('/friend-requests');
+    await pageA.goto('./friend-requests');
     const card = pageA.locator('.friend-request-card, .card').first();
     await expect(card).toBeVisible({ timeout: 15_000 });
     await expect(card).toContainText('Saw you at the lights!');
