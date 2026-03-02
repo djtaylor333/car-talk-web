@@ -1,6 +1,5 @@
 # Firebase credentials (never commit)
 android-app/app/google-services.json
-web-app/src/services/firebaseConfig.ts
 web-app/.env
 web-app/.env.local
 
