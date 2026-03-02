@@ -23,6 +23,10 @@ web-app/dist/
 web-app/.vite/
 .DS_Store
 
+# Playwright test artifacts
+web-app/playwright-report/
+web-app/test-results/
+
 # IDE
 .idea/
 *.swp

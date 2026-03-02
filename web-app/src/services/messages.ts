@@ -20,6 +20,7 @@ import { containsProfanity } from '../utils/profanityFilter';
 export const sendMessage = async (
   senderId: string,
   senderVehicleId: string,
+  senderVehicleDisplay: string,
   recipientUserId: string,
   recipientVehicleId: string,
   data: MessageFormData
@@ -46,11 +47,13 @@ export const sendMessage = async (
   await addDoc(collection(db, 'messages'), {
     senderId,
     senderVehicleId,
+    senderVehicleDisplay,
     recipientUserId,
     recipientVehicleId,
     threadId,
     content: data.content,
     isFriendMessage,
+    isAnonymous: data.isAnonymous,
     isRead: false,
     timestamp: serverTimestamp(),
     expiresAt,
@@ -91,7 +94,10 @@ export const subscribeToInbox = (
     orderBy('timestamp', 'desc')
   );
   return onSnapshot(q, (snap) => {
-    const msgs: Message[] = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
+    const now = new Date();
+    const msgs: Message[] = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as Message))
+      .filter((m) => !m.expiresAt || m.expiresAt.toDate() > now);
     onMessages(msgs);
   });
 };

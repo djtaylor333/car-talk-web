@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getProfile } from '../services/vehicles';
@@ -18,6 +18,7 @@ const ComposePage: React.FC = () => {
   const isFriendRequest = params.get('friendRequest') === 'true';
 
   const [content, setContent] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(!isFriendParam);
   const [senderVehicle, setSenderVehicle] = useState<Vehicle | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,11 +42,12 @@ const ComposePage: React.FC = () => {
     setError('');
     setLoading(true);
     try {
+      const vehicleDisplay = `${senderVehicle.make} ${senderVehicle.model} (${senderVehicle.color})`;
       if (isFriendRequest) {
         await sendFriendRequest(user.uid, senderVehicle.id, recipientId, recipientVehicleId, content);
       } else {
-        const formData: MessageFormData = { content, isFriendMessage: isFriendParam };
-        await sendMessage(user.uid, senderVehicle.id, recipientId, recipientVehicleId, formData);
+        const formData: MessageFormData = { content, isFriendMessage: isFriendParam, isAnonymous };
+        await sendMessage(user.uid, senderVehicle.id, vehicleDisplay, recipientId, recipientVehicleId, formData);
       }
       navigate('/inbox');
     } catch (err: unknown) {
@@ -60,6 +62,12 @@ const ComposePage: React.FC = () => {
       <h1 className="page-title">
         {isFriendRequest ? 'Friend Request' : `Message to ${plate}`}
       </h1>
+      {!senderVehicle && (
+        <div className="card empty-state">
+          <p>You need to add a vehicle before messaging.</p>
+          <a className="btn-secondary" href="/car-talk-web/add-vehicle">Add Vehicle</a>
+        </div>
+      )}
       <form onSubmit={handleSend}>
         <div className="form-group">
           <label htmlFor="content">
@@ -70,12 +78,41 @@ const ComposePage: React.FC = () => {
             rows={4}
             value={content}
             onChange={(e) => setContent(e.target.value.slice(0, maxChars))}
-            placeholder={isFriendRequest ? 'Hi, we share the highway… (100 chars)' : 'Say something… (anonymous)'}
+            placeholder={
+              isFriendRequest
+                ? 'Hi, we share the highway... (100 chars)'
+                : isAnonymous
+                ? 'Say something... (anonymous - recipient cannot see your identity)'
+                : 'Say something... (recipient can see your vehicle make/model)'
+            }
           />
         </div>
+        {!isFriendRequest && !isFriendParam && (
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label" data-testid="anon-toggle">
+              <input
+                type="checkbox"
+                checked={isAnonymous}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
+                data-testid="anon-checkbox"
+              />
+              <span className="checkbox-text">Send anonymously</span>
+            </label>
+            <p className="checkbox-hint">
+              {isAnonymous
+                ? 'Recipient cannot see your vehicle or identity'
+                : 'Recipient can see your vehicle: ' + (senderVehicle ? `${senderVehicle.make} ${senderVehicle.model}` : '')}
+            </p>
+          </div>
+        )}
         {error && <p className="error-text" role="alert">{error}</p>}
-        <button className="btn-primary" type="submit" disabled={loading || !content.trim() || !senderVehicle}>
-          {loading ? 'Sending…' : isFriendRequest ? 'Send Friend Request' : 'Send'}
+        <button
+          className="btn-primary"
+          type="submit"
+          disabled={loading || !content.trim() || !senderVehicle}
+          data-testid="send-btn"
+        >
+          {loading ? 'Sending...' : isFriendRequest ? 'Send Friend Request' : 'Send Message'}
         </button>
       </form>
     </div>

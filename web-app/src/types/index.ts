@@ -21,6 +21,7 @@ export interface UserProfile {
 export interface MessageFormData {
   content: string;
   isFriendMessage: boolean;
+  isAnonymous: boolean;
 }
 
 export enum FriendRequestStatus {
