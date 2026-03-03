@@ -47,7 +47,7 @@ const ProfilePage: React.FC = () => {
       <h2 className="section-title">My Vehicles</h2>
       {(profile?.vehicles ?? []).map((v) => (
         <div key={v.id} className="card vehicle-card">
-          <VehicleSilhouette color={v.color} size={80} />
+          <VehicleSilhouette color={v.color} make={v.make} model={v.model} size={80} />
           <div className="vehicle-info">
             <p className="vehicle-plate">{v.licensePlate}</p>
             <p className="vehicle-detail">{v.make} {v.model} · {v.color}</p>

@@ -131,3 +131,9 @@ button:active:not(:disabled) { transform: scale(0.97); }
 .thread-footer { padding: 12px 16px; border-top: 1px solid var(--color-border); background: var(--color-surface); }
 .btn-back { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--color-primary); padding: 4px; }
 .bubble-vehicle { font-size: 0.72rem; color: var(--color-text-muted); display: block; margin-bottom: 2px; }
+
+/* ── Vehicle image shimmer ───────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
