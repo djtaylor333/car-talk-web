@@ -16,6 +16,10 @@ const Layout: React.FC = () => (
         <span className="nav-icon">💬</span>
         <span className="nav-label">Inbox</span>
       </NavLink>
+      <NavLink to="/friends" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+        <span className="nav-icon">👥</span>
+        <span className="nav-label">Friends</span>
+      </NavLink>
       <NavLink to="/profile" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
         <span className="nav-icon">🚗</span>
         <span className="nav-label">Profile</span>

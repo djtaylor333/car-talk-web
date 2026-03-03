@@ -29,6 +29,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/search" element={<SearchPage />} />
         <Route path="/inbox" element={<InboxPage />} />
+        <Route path="/friends" element={<FriendRequestsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
@@ -36,7 +37,8 @@ function AppRoutes() {
       <Route path="/add-vehicle" element={<ProtectedRoute><AddVehiclePage /></ProtectedRoute>} />
       <Route path="/thread/:threadId" element={<ProtectedRoute><ThreadPage /></ProtectedRoute>} />
       <Route path="/compose" element={<ProtectedRoute><ComposePage /></ProtectedRoute>} />
-      <Route path="/friend-requests" element={<ProtectedRoute><FriendRequestsPage /></ProtectedRoute>} />
+      {/* Keep old route as redirect for any existing links */}
+      <Route path="/friend-requests" element={<Navigate to="/friends" replace />} />
 
       {/* Default redirect */}
       <Route path="/" element={<Navigate to={user ? '/search' : '/login'} replace />} />

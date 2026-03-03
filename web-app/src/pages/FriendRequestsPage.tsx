@@ -1,8 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useFriends } from '../hooks/useFriends';
 import { respondToRequest } from '../services/friends';
-import { FriendRequest } from '../types';
+import { FriendRequest, Friend } from '../types';
 
 const RequestCard: React.FC<{ req: FriendRequest; onRespond: () => void }> = ({ req, onRespond }) => {
   const [loading, setLoading] = React.useState(false);
@@ -26,6 +27,33 @@ const RequestCard: React.FC<{ req: FriendRequest; onRespond: () => void }> = ({ 
   );
 };
 
+const FriendCard: React.FC<{ friend: Friend }> = ({ friend }) => {
+  const navigate = useNavigate();
+  const displayName = friend.vehicleDisplay || friend.vehicleId;
+
+  const handleMessage = () => {
+    const params = new URLSearchParams({
+      recipientId: friend.userId,
+      vehicleId: friend.vehicleId,
+      plate: displayName,
+      isFriend: 'true',
+    });
+    navigate(`/compose?${params.toString()}`);
+  };
+
+  return (
+    <div className="card friend-card">
+      <div className="friend-card-info">
+        <p className="friend-vehicle">{displayName}</p>
+        {friend.nickname && <p className="friend-nickname">{friend.nickname}</p>}
+      </div>
+      <div className="friend-actions">
+        <button className="btn-primary" onClick={handleMessage}>Message</button>
+      </div>
+    </div>
+  );
+};
+
 const FriendRequestsPage: React.FC = () => {
   const { user } = useAuth();
   const { requests, friends, loading, } = useFriends(user?.uid ?? null);
@@ -43,12 +71,9 @@ const FriendRequestsPage: React.FC = () => {
       ))}
 
       <h2 className="section-title" style={{ marginTop: 24 }}>My Friends ({friends.length})</h2>
-      {friends.length === 0 && <p className="empty-state-text">No friends yet.</p>}
+      {friends.length === 0 && <p className="empty-state-text">No friends yet. Search a plate and tap "Add as Friend".</p>}
       {friends.map((f) => (
-        <div key={f.userId} className="card friend-card">
-          <p className="friend-vehicle">{f.vehicleId}</p>
-          {f.nickname && <p className="friend-nickname">{f.nickname}</p>}
-        </div>
+        <FriendCard key={f.userId} friend={f} />
       ))}
     </div>
   );
