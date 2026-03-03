@@ -88,37 +88,13 @@ export async function deleteCurrentUser(page: Page): Promise<void> {
   }).catch(() => { /* ignore: user may already be deleted */ });
 }
 
-// ─── NHTSA API mocking ─────────────────────────────────────────────────────
+// ─── Vehicle data helpers ────────────────────────────────────────────────────
+// Note: make/model dropdowns now use static bundled data (no NHTSA API calls).
+// The vehicle list uses Title Case (e.g. 'Toyota', not 'TOYOTA').
 
-const MOCK_MAKES = ['TOYOTA', 'HONDA', 'FORD'];
-const MOCK_MODELS: Record<string, string[]> = {
-  TOYOTA: ['Camry', 'Corolla', 'RAV4'],
-  HONDA: ['Civic', 'Accord', 'CR-V'],
-  FORD: ['F-150', 'Mustang', 'Explorer'],
-};
-
-export async function mockNHTSARoutes(page: Page): Promise<void> {
-  await page.route('**/vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes**', (route) =>
-    route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({
-        Results: MOCK_MAKES.map((MakeName) => ({ MakeName })),
-      }),
-    })
-  );
-
-  await page.route('**/vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/**', (route) => {
-    const url = route.request().url();
-    const makeEncoded = url.split('/GetModelsForMake/')[1]?.split('?')[0] ?? '';
-    const make = decodeURIComponent(makeEncoded).toUpperCase();
-    const models = MOCK_MODELS[make] ?? ['Model A', 'Model B'];
-    route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({
-        Results: models.map((Model_Name) => ({ Model_Name })),
-      }),
-    });
-  });
+/** @deprecated No-op — NHTSA API is no longer used; dropdowns use static data */
+export async function mockNHTSARoutes(_page: Page): Promise<void> {
+  // Nothing to mock — makes and models come from bundled vehicleData.ts
 }
 
 // ─── Vehicle profile helpers ───────────────────────────────────────────────
@@ -135,23 +111,22 @@ export async function addVehicleViaUI(
   opts: VehicleOptions = {}
 ): Promise<string> {
   const plate = opts.plate ?? uniquePlate();
-  const make = opts.make ?? 'TOYOTA';
+  // Static vehicleData uses Title Case — must match exactly
+  const make  = opts.make  ?? 'Toyota';
   const model = opts.model ?? 'Camry';
   const color = opts.color ?? 'Blue';
 
-  await mockNHTSARoutes(page);
   await page.goto('./add-vehicle');
-
   await page.fill('#plate', plate);
 
-  // Wait for makes dropdown to be populated (NHTSA response)
+  // Make dropdown is populated synchronously from bundled data; still wait for render
   await page.waitForFunction(
     () => (document.querySelector('#make') as HTMLSelectElement)?.options.length > 1,
     { timeout: 10_000 }
   );
   await page.selectOption('#make', make);
 
-  // Wait for models dropdown to be populated
+  // Model dropdown enables synchronously after make is selected
   await page.waitForFunction(
     () => !(document.querySelector('#model') as HTMLSelectElement)?.disabled
         && (document.querySelector('#model') as HTMLSelectElement)?.options.length > 1,

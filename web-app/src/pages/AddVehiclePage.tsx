@@ -11,7 +11,7 @@ const AddVehiclePage: React.FC = () => {
   const [plate, setPlate] = useState('');
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
-  const [color, setColor] = useState<string>('');
+  const [color, setColor] = useState<string>(VEHICLE_COLORS[0].name);
   const [models, setModels] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

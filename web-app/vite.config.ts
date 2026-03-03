@@ -26,11 +26,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/vpic\.nhtsa\.dot\.gov\//,
+            // Cache Imagin Studios car renders for offline / repeat loads
+            urlPattern: /^https:\/\/cdn\.imagin\.studio\//,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'nhtsa-cache',
-              expiration: { maxAgeSeconds: 60 * 60 * 24 * 7 }
+              cacheName: 'imagin-studio-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 }
             }
           }
         ]

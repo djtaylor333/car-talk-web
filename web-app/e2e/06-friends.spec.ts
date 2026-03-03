@@ -31,8 +31,8 @@ test.describe('Friends / Favourites', () => {
     await pageB.locator('[data-testid="send-btn"]').click();
     await pageB.waitForURL(/inbox/);
 
-    // ── User A goes to friend requests and accepts ─────────────────────────
-    await pageA.goto('./friend-requests');
+    // ── User A goes to friends page and accepts ─────────────────────────────
+    await pageA.goto('./friends');
     const requestCard = pageA.locator('.friend-request-card, .card').first();
     await expect(requestCard).toBeVisible({ timeout: 15_000 });
     // Intro message visible on the card

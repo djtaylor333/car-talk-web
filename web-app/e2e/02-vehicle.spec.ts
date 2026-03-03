@@ -1,10 +1,10 @@
 /**
  * E2E — 02: Vehicle Profile
- * Tests: add a vehicle with NHTSA make/model dropdowns + color selection,
+ * Tests: add a vehicle with static make/model dropdowns + color selection,
  *        see it on profile page.
  */
 import { test, expect } from '@playwright/test';
-import { createTestUser, cleanupTestUser, mockNHTSARoutes, uniquePlate } from './helpers';
+import { createTestUser, cleanupTestUser, uniquePlate } from './helpers';
 
 const PASSWORD = 'TestPass123!';
 
@@ -18,23 +18,21 @@ test.describe('Vehicle Profile', () => {
     await cleanupTestUser(page);
   });
 
-  test('make dropdown is populated from NHTSA API', async ({ page }) => {
-    await mockNHTSARoutes(page);
+  test('make dropdown is populated from static vehicle data', async ({ page }) => {
     await page.goto('./add-vehicle');
 
     const makeSelect = page.locator('#make');
-    // Wait for options to appear
+    // Wait for options to appear (static data populates synchronously on render)
     await page.waitForFunction(
       () => (document.querySelector('#make') as HTMLSelectElement)?.options.length > 1,
       { timeout: 10_000 }
     );
     const options = await makeSelect.locator('option').allTextContents();
-    expect(options.some((o) => o === 'TOYOTA')).toBe(true);
-    expect(options.some((o) => o === 'HONDA')).toBe(true);
+    expect(options.some((o) => o === 'Toyota')).toBe(true);
+    expect(options.some((o) => o === 'Honda')).toBe(true);
   });
 
   test('selecting make loads model dropdown', async ({ page }) => {
-    await mockNHTSARoutes(page);
     await page.goto('./add-vehicle');
 
     await page.waitForFunction(
@@ -45,7 +43,7 @@ test.describe('Vehicle Profile', () => {
     // Model dropdown should be disabled until a make is selected
     await expect(page.locator('#model')).toBeDisabled();
 
-    await page.selectOption('#make', 'TOYOTA');
+    await page.selectOption('#make', 'Toyota');
 
     // Model dropdown enables and populates
     await page.waitForFunction(
@@ -59,7 +57,6 @@ test.describe('Vehicle Profile', () => {
   });
 
   test('colour dropdown has many options', async ({ page }) => {
-    await mockNHTSARoutes(page);
     await page.goto('./add-vehicle');
 
     await expect(page.locator('#color')).toBeVisible({ timeout: 10_000 });
@@ -83,7 +80,7 @@ test.describe('Vehicle Profile', () => {
       () => (document.querySelector('#make') as HTMLSelectElement)?.options.length > 1,
       { timeout: 10_000 }
     );
-    await page.selectOption('#make', 'HONDA');
+    await page.selectOption('#make', 'Honda');
     await page.waitForFunction(
       () => !(document.querySelector('#model') as HTMLSelectElement)?.disabled
           && (document.querySelector('#model') as HTMLSelectElement)?.options.length > 1,
@@ -100,20 +97,19 @@ test.describe('Vehicle Profile', () => {
   });
 
   test('submit button disabled until all fields filled', async ({ page }) => {
-    await mockNHTSARoutes(page);
     await page.goto('./add-vehicle');
 
     const submitBtn = page.locator('button[type="submit"]');
     await expect(submitBtn).toBeDisabled();
 
     await page.fill('#plate', 'ABC123');
-    await expect(submitBtn).toBeDisabled(); // still needs make + model
+    await expect(submitBtn).toBeDisabled(); // still needs make + model + color
 
     await page.waitForFunction(
       () => (document.querySelector('#make') as HTMLSelectElement)?.options.length > 1,
       { timeout: 10_000 }
     );
-    await page.selectOption('#make', 'FORD');
+    await page.selectOption('#make', 'Ford');
     await expect(submitBtn).toBeDisabled(); // still needs model
 
     await page.waitForFunction(
