@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { addVehicle, getProfile } from '../services/vehicles';
 import { Vehicle, VEHICLE_COLORS, MAX_VEHICLES } from '../types';
-
-const MAKES_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json';
+import { VEHICLE_MAKES, getModelsForMake } from '../data/vehicleData';
 
 const AddVehiclePage: React.FC = () => {
   const { user } = useAuth();
@@ -13,18 +12,10 @@ const AddVehiclePage: React.FC = () => {
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [color, setColor] = useState<string>('');
-  const [makes, setMakes] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [vehicleCount, setVehicleCount] = useState(0);
-
-  useEffect(() => {
-    fetch(MAKES_URL)
-      .then((r) => r.json())
-      .then((d) => setMakes(d.Results.map((m: { MakeName: string }) => m.MakeName).sort()))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -32,11 +23,8 @@ const AddVehiclePage: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
-    if (!make) { setModels([]); return; }
-    fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${encodeURIComponent(make)}?format=json`)
-      .then((r) => r.json())
-      .then((d) => setModels(d.Results.map((m: { Model_Name: string }) => m.Model_Name).sort()))
-      .catch(() => {});
+    setModel('');
+    setModels(make ? getModelsForMake(make) : []);
   }, [make]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,7 +78,7 @@ const AddVehiclePage: React.FC = () => {
           <label htmlFor="make">Make</label>
           <select id="make" value={make} onChange={(e) => setMake(e.target.value)} required>
             <option value="">Select make…</option>
-            {makes.map((m) => <option key={m} value={m}>{m}</option>)}
+            {VEHICLE_MAKES.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
         <div className="form-group">

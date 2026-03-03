@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.djtaylor.cartalk.data.VehicleData
 import com.djtaylor.cartalk.data.model.Vehicle
 import com.djtaylor.cartalk.data.model.VehicleColor
 import com.djtaylor.cartalk.ui.viewmodel.ProfileViewModel
@@ -39,6 +40,10 @@ fun AddVehicleScreen(
     var make by remember { mutableStateOf("") }
     var model by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf<VehicleColor?>(null) }
+
+    var makeExpanded by remember { mutableStateOf(false) }
+    var modelExpanded by remember { mutableStateOf(false) }
+    val availableModels by remember(make) { derivedStateOf { VehicleData.modelsFor(make) } }
 
     LaunchedEffect(uiState.successMessage) {
         if (uiState.successMessage != null) onDone()
@@ -59,21 +64,127 @@ fun AddVehicleScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        OutlinedTextField(
-            value = make,
-            onValueChange = { make = it },
-            label = { Text("Make (e.g. Toyota)") },
-            singleLine = true,
+        // Make dropdown
+        ExposedDropdownMenuBox(
+            expanded = makeExpanded,
+            onExpandedChange = { makeExpanded = it },
             modifier = Modifier.fillMaxWidth()
-        )
+        ) {
+            OutlinedTextField(
+                value = make,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Make") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = makeExpanded) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().menuAnchor()
+            )
+            ExposedDropdownMenu(
+                expanded = makeExpanded,
+                onDismissRequest = { makeExpanded = false }
+            ) {
+                VehicleData.makes.forEach { makeName ->
+                    DropdownMenuItem(
+                        text = { Text(makeName) },
+                        onClick = {
+                            make = makeName
+                            model = ""
+                            makeExpanded = false
+                        }
+                    )
+                }
+            }
+        }
 
-        OutlinedTextField(
-            value = model,
-            onValueChange = { model = it },
-            label = { Text("Model (e.g. Camry)") },
-            singleLine = true,
+        // Model dropdown (disabled until make selected)
+        ExposedDropdownMenuBox(
+            expanded = modelExpanded && make.isNotEmpty(),
+            onExpandedChange = { if (make.isNotEmpty()) modelExpanded = it },
             modifier = Modifier.fillMaxWidth()
-        )
+        ) {
+            OutlinedTextField(
+                value = model,
+                onValueChange = {},
+                readOnly = true,
+                enabled = make.isNotEmpty(),
+                label = { Text("Model") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = modelExpanded && make.isNotEmpty()) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().menuAnchor()
+            )
+            ExposedDropdownMenu(
+                expanded = modelExpanded && make.isNotEmpty(),
+                onDismissRequest = { modelExpanded = false }
+            ) {
+                availableModels.forEach { modelName ->
+                    DropdownMenuItem(
+                        text = { Text(modelName) },
+                        onClick = {
+                            model = modelName
+                            modelExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Text("Color", style = MaterialTheme.typography.labelLarge)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(VehicleColor.values()) { vehicleColor ->
+                val parsedColor = Color(android.graphics.Color.parseColor(vehicleColor.hexColor))
+                val isSelected = selectedColor == vehicleColor
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(parsedColor)
+                        .border(
+                            width = if (isSelected) 3.dp else 1.dp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
+                            shape = CircleShape
+                        )
+                        .clickable { selectedColor = vehicleColor },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        val isLight = ColorUtils.calculateLuminance(parsedColor.toArgb()) > 0.5
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = if (isLight) Color.Black else Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+        }
+        selectedColor?.let { Text(it.displayName, style = MaterialTheme.typography.bodySmall) }
+
+        uiState.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+
+        Button(
+            onClick = {
+                profileViewModel.addVehicle(
+                    uid,
+                    Vehicle(
+                        licensePlate = licensePlate.trim(),
+                        make = make.trim(),
+                        model = model.trim(),
+                        color = selectedColor?.displayName ?: ""
+                    )
+                )
+            },
+            enabled = licensePlate.isNotBlank() && make.isNotBlank() && model.isNotBlank() && selectedColor != null && !uiState.isLoading,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (uiState.isLoading) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+            else Text("Add Vehicle")
+        }
+
+        TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text("Skip for now") }
+    }
+}
+
 
         Text("Color", style = MaterialTheme.typography.labelLarge)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
